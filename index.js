@@ -140,7 +140,7 @@ Adapter.prototype.broadcast = function(packet, opts){
  */
 
 Adapter.prototype.clients = function(rooms, fn){
-  if ('function' == typeof rooms){
+  if ('function' === typeof rooms){
     fn = rooms;
     rooms = null;
   }
