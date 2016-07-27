@@ -1,4 +1,4 @@
-
+"use strict";
 /**
  * Module dependencies.
  */
@@ -78,14 +78,12 @@ Adapter.prototype.del = function(id, room, fn){
  */
 
 Adapter.prototype.delAll = function(id, fn){
-  var rooms = this.sids[id];
-  if (rooms) {
-    for (var room in rooms) {
-      if (this.rooms.hasOwnProperty(room)) {
-        this.rooms[room].del(id);
-        if (this.rooms[room].length === 0) delete this.rooms[room];
-      }
-    }
+  if (this.sids[id]) {
+    Object.keys(this.sids[id]).filter( room => this.rooms[room] )
+      .map( room => {
+          this.rooms[room].del(id);
+          if (this.rooms[room].length === 0) delete this.rooms[room];
+      })  
   }
   delete this.sids[id];
 
@@ -113,36 +111,23 @@ Adapter.prototype.broadcast = function(packet, opts){
     volatile: flags.volatile,
     compress: flags.compress
   };
-  var ids = {};
-  var self = this;
-  var socket;
-
   packet.nsp = this.nsp.name;
-  this.encoder.encode(packet, function(encodedPackets) {
+  
+  this.encoder.encode(packet, (encodedPackets) => {
     if (rooms.length) {
-      for (var i = 0; i < rooms.length; i++) {
-        var room = self.rooms[rooms[i]];
-        if (!room) continue;
-        var sockets = room.sockets;
-        for (var id in sockets) {
-          if (sockets.hasOwnProperty(id)) {
-            if (ids[id] || ~except.indexOf(id)) continue;
-            socket = self.nsp.connected[id];
-            if (socket) {
-              socket.packet(encodedPackets, packetOpts);
-              ids[id] = true;
-            }
-          }
-        }
-      }
+        rooms.filter( room => this.rooms[room] )
+          .map( room => this.rooms[room] )
+          .map( room => Object.keys(room.sockets) )
+          .join().split(',')
+          .filter( id => !except.includes(id) )
+          .map( id => this.nsp.connected[id] )
+          .filter( e => e)
+          .map( sc => sc.packet(encodedPackets, packetOpts) );
     } else {
-      for (var id in self.sids) {
-        if (self.sids.hasOwnProperty(id)) {
-          if (~except.indexOf(id)) continue;
-          socket = self.nsp.connected[id];
-          if (socket) socket.packet(encodedPackets, packetOpts);
-        }
-      }
+      Object.keys(this.sids).filter( id => !except.includes(id) )
+        .map( id => this.nsp.connected[id] )
+        .filter( e => e )
+        .map( sc => sc.packet(encodedPackets, packetOpts) );
     }
   });
 };
@@ -159,40 +144,19 @@ Adapter.prototype.clients = function(rooms, fn){
     fn = rooms;
     rooms = null;
   }
-
-  rooms = rooms || [];
-
-  var ids = {};
-  var self = this;
+  if (!fn) return;
   var sids = [];
-  var socket;
-
+  rooms = rooms || [];
+  
   if (rooms.length) {
-    for (var i = 0; i < rooms.length; i++) {
-      var room = self.rooms[rooms[i]];
-      if (!room) continue;
-      var sockets = room.sockets;
-      for (var id in sockets) {
-        if (sockets.hasOwnProperty(id)) {
-          if (ids[id]) continue;
-          socket = self.nsp.connected[id];
-          if (socket) {
-            sids.push(id);
-            ids[id] = true;
-          }
-        }
-      }
-    }
+      sids = rooms.filter( room => this.rooms[room] )
+        .map( room => Object.keys(room.sockets) )
+        .join().split(',')
+        .filter( sc => this.nsp.connected[sc]);
   } else {
-    for (var id in self.sids) {
-      if (self.sids.hasOwnProperty(id)) {
-        socket = self.nsp.connected[id];
-        if (socket) sids.push(id);
-      }
-    }
+      sids = Object.keys(this.sids).filter( sc => this.nsp.connected[sc]);
   }
-
-  if (fn) process.nextTick(fn.bind(null, null, sids));
+  process.nextTick(fn.bind(null, null, sids));
 };
 
 /**
