@@ -8,6 +8,6 @@
   },
   "description": "",
   "dependencies": {
-    "socket.io-parser": "2.2.6"
+    "socket.io-parser": "https://github.com/nkrass/socket.io-parser"
   }
 }
