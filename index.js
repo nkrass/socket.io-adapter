@@ -49,10 +49,10 @@ const Room = class {
  * Memory adapter constructor.
  * @constructor
  * @param {String} nsp
+ * @type {{new(*): {del: (function(String, String, Function)), clients: (function(Array=, Function)), add: (function(String, String, Function)), delAll: (function(String, Function)), broadcast: (function(Object=, {rooms: Array, flags: Object, except: Array}=))}}}
  * @api public
  * @export
  */
-
 const Adapter = class extends Emitter{
   constructor(nsp){
     super();
