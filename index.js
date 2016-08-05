@@ -126,10 +126,10 @@ const Adapter = class extends Emitter{
    * @api public
    */
   broadcast(packet = {}, opts = {}){
-    var rooms = opts.rooms || [];
-    var except = opts.except || [];
-    var flags = opts.flags || {};
-    var packetOpts = {
+    const rooms = opts.rooms || [];
+    const except = opts.except || [];
+    const flags = opts.flags || {};
+    const packetOpts = {
       preEncoded: true,
       volatile: flags.volatile,
       compress: flags.compress
