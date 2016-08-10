@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-const Emitter = require('events').EventEmitter;
+const Emitter = require('events');
 const parser = require('socket.io-parser');
 
 /**
@@ -12,7 +12,7 @@ const parser = require('socket.io-parser');
  * @api private
  * @private
  */
-const Room = class {
+const Room = class Room{
   constructor(){
     //if (!(this instanceof Room)) return new Room();
     this.sockets = {};
@@ -49,11 +49,11 @@ const Room = class {
  * Memory adapter constructor.
  * @constructor
  * @param {String} nsp
- * @type {{new(*): {del: (function(String, String, Function)), clients: (function(Array=, Function)), add: (function(String, String, Function)), delAll: (function(String, Function)), broadcast: (function(Object=, {rooms: Array, flags: Object, except: Array}=))}}}
+ * @type {Adapter}
  * @api public
  * @export
  */
-const Adapter = class extends Emitter{
+const Adapter = class Adapter extends Emitter{
   constructor(nsp){
     super();
     this.nsp = nsp;
